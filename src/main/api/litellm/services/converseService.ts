@@ -51,6 +51,9 @@ export class ConverseService {
       // Get parameters
       const inferenceParams = this.context.store.get('inferenceParams')
       const thinkingMode = this.context.store.get('thinkingMode')
+      const thinkingEnabled = Boolean(
+        thinkingMode?.type === 'enabled' && thinkingMode?.budget_tokens
+      )
 
       // Make API call to LiteLLM
       const chatInput = {
@@ -58,9 +61,9 @@ export class ConverseService {
         messages: this.prepareMessages(props.messages, props.system[0].text),
         temperature: inferenceParams.temperature,
         max_tokens: inferenceParams.maxTokens,
-        top_p: thinkingMode ? undefined : inferenceParams.topP,
+        top_p: thinkingEnabled ? undefined : inferenceParams.topP,
         tools: this.convertToolsToOpenAIFormat(props.toolConfig),
-        thinking: thinkingMode
+        thinking: thinkingEnabled ? thinkingMode : undefined
       }
       const response = await client.chat.completions.create(chatInput)
 
@@ -91,6 +94,9 @@ export class ConverseService {
       // Get inference parameters
       const inferenceParams = this.context.store.get('inferenceParams')
       const thinkingMode = this.context.store.get('thinkingMode')
+      const thinkingEnabled = Boolean(
+        thinkingMode?.type === 'enabled' && thinkingMode?.budget_tokens
+      )
 
       // Make streaming API call to LiteLLM
       const chatInput = {
@@ -98,9 +104,9 @@ export class ConverseService {
         messages: this.prepareMessages(props.messages, props.system[0].text),
         temperature: inferenceParams.temperature,
         max_tokens: inferenceParams.maxTokens,
-        top_p: thinkingMode ? undefined : inferenceParams.topP,
+        top_p: thinkingEnabled ? undefined : inferenceParams.topP,
         tools: this.convertToolsToOpenAIFormat(props.toolConfig),
-        thinking: thinkingMode,
+        thinking: thinkingEnabled ? thinkingMode : undefined,
         stream: true
       } as ChatCompletionCreateParamsStreaming
       const stream = await client.chat.completions.create(chatInput)
