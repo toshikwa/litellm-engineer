@@ -9,9 +9,8 @@ const modelLogger = createCategoryLogger('litellm:model')
  * LiteLLM Model API service class
  */
 export class ModelService {
-  private static readonly CACHE_LIFETIME = 1000 * 60 * 5 // 5 min
-  private modelCache: { [key: string]: any } = {}
-
+  private static readonly CACHE_LIFETIME = 1000 * 5 // 5 sec
+  private modelCache: { [key: string]: { models: LLM[]; timestamp: number } } = {}
   constructor(private context: ServiceContext) {}
 
   /**
@@ -25,21 +24,17 @@ export class ModelService {
         throw new Error('LiteLLM configuration not found')
       }
 
+      // Check cache first
       const { apiKey, baseURL } = liteLLMConfig.credentials
       const cacheKey = `${baseURL}-${apiKey}`
-
-      // Check cache first
       const cachedData = this.modelCache[cacheKey]
       if (
         cachedData &&
-        cachedData._timestamp &&
-        Date.now() - cachedData._timestamp < ModelService.CACHE_LIFETIME
+        cachedData.timestamp &&
+        Date.now() - cachedData.timestamp < ModelService.CACHE_LIFETIME
       ) {
-        return cachedData.filter((model: any) => !model._timestamp)
+        return cachedData.models
       }
-
-      // Log request
-      modelLogger.debug('Fetching models from LiteLLM API')
 
       // Make API call to LiteLLM
       const response = await fetch(`${baseURL}/v2/model/info`, {
@@ -56,9 +51,13 @@ export class ModelService {
       // Transform the response to match our LLM interface
       const data = await response.json()
       const models = this.transformModels(data)
-      this.modelCache[cacheKey] = [...models, { _timestamp: Date.now() } as any]
 
-      return models
+      // Cache the models with a timestamp
+      this.modelCache[cacheKey] = {
+        models: models,
+        timestamp: Date.now()
+      }
+      return this.transformModels(data)
     } catch (error: any) {
       modelLogger.error('Error fetching models from LiteLLM', {
         error: error instanceof Error ? error.message : String(error)
@@ -75,19 +74,23 @@ export class ModelService {
       modelLogger.warn('Invalid model data format from LiteLLM API')
       return []
     }
-
-    return data.data.map((model: any) => {
+    // Use a Map to avoid duplicates
+    const modelMap = new Map<string, LLM>()
+    data.data.forEach((model: any) => {
       const modelInfo = model.model_info || {}
-
-      return {
-        modelId: model.model_name,
-        modelName: `${model.model_name} (LiteLLM)`,
-        toolUse: modelInfo.supports_function_calling || modelInfo.supports_tool_choice || false,
-        regions: ['default'],
-        maxTokensLimit: modelInfo.max_tokens || 4096,
-        supportsThinking: modelInfo.supported_openai_params?.includes('thinking') || false,
-        provider: 'litellm'
+      const modelId = model.model_name
+      if (!modelMap.has(modelId)) {
+        modelMap.set(modelId, {
+          modelId: modelId,
+          modelName: `${modelId} (LiteLLM)`,
+          toolUse: modelInfo.supports_function_calling || modelInfo.supports_tool_choice || false,
+          regions: ['default'],
+          maxTokensLimit: modelInfo.max_tokens || 4096,
+          supportsThinking: modelInfo.supported_openai_params?.includes('thinking') || false,
+          provider: 'litellm'
+        })
       }
     })
+    return Array.from(modelMap.values())
   }
 }

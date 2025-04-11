@@ -472,7 +472,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   useEffect(() => {
     fetchModels()
-  }, [awsRegion, awsAccessKeyId, awsSecretAccessKey, awsProfile, useAwsProfile])
+  }, [awsRegion, awsAccessKeyId, awsSecretAccessKey, awsProfile, useAwsProfile, liteLLMConfig])
 
   // MCPツールをロードする - 状態を更新せずツールのみを返すように修正
   const fetchMcpTools = useCallback(async (mcpServers?: McpServerConfig[]) => {
@@ -672,6 +672,10 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           }
           return model
         })
+        // Check if the current LLM is in the list of available models
+        if (!enhancedModels.includes(currentLLM)) {
+          setCurrentLLM(defaultModel)
+        }
         setAvailableModels(enhancedModels)
       }
     } catch (e: any) {

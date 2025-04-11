@@ -30,7 +30,7 @@ const converseLogger = createCategoryLogger('litellm:converse')
  */
 export class ConverseService {
   private static readonly MAX_RETRIES = 5
-  private static readonly RETRY_DELAY = 100
+  private static readonly RETRY_DELAY = 1000
 
   constructor(private context: ServiceContext) {}
 

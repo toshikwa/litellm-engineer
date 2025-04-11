@@ -1,11 +1,11 @@
 import { getDefaultPromptRouter, getModelsForRegion } from '../models'
 import { getAccountId } from '../utils/awsUtils'
 import type { ServiceContext, AWSCredentials } from '../types'
-import { BedrockSupportRegion } from '../../../../types/llm'
+import { BedrockSupportRegion, LLM } from '../../../../types/llm'
 
 export class ModelService {
   private static readonly CACHE_LIFETIME = 1000 * 60 * 5 // 5 min
-  private modelCache: { [key: string]: any } = {}
+  private modelCache: { [key: string]: { models: LLM[]; timestamp: number } } = {}
 
   constructor(private context: ServiceContext) {}
 
@@ -26,10 +26,10 @@ export class ModelService {
 
     if (
       cachedData &&
-      cachedData._timestamp &&
-      Date.now() - cachedData._timestamp < ModelService.CACHE_LIFETIME
+      cachedData.timestamp &&
+      Date.now() - cachedData.timestamp < ModelService.CACHE_LIFETIME
     ) {
-      return cachedData.filter((model) => !model._timestamp)
+      return cachedData.models
     }
 
     try {
@@ -38,7 +38,10 @@ export class ModelService {
       const accountId = await getAccountId(awsCredentials)
       const promptRouterModels = accountId ? getDefaultPromptRouter(accountId, region) : []
       const result = [...models, ...promptRouterModels]
-      this.modelCache[cacheKey] = [...result, { _timestamp: Date.now() } as any]
+      this.modelCache[cacheKey] = {
+        models: models,
+        timestamp: Date.now()
+      }
 
       return result
     } catch (error) {
