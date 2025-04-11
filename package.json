@@ -1,9 +1,9 @@
 {
   "name": "bedrock-engineer",
-  "version": "1.8.1",
+  "version": "1.8.1-litellm.1",
   "description": "Autonomous software development agent apps using Amazon Bedrock, capable of customize to create/edit files, execute commands, search the web, use knowledge base, use multi-agents, generative images and more.",
   "main": "./out/main/index.js",
-  "homepage": "https://github.com/daisuke-awaji/bedrock-engineer",
+  "homepage": "https://github.com/aws-samples/bedrock-engineer",
   "engines": {
     "node": ">=18.0.0"
   },
@@ -56,6 +56,7 @@
     "lottie-react": "2.4.0",
     "mermaid": "11.1.1",
     "node-cache": "5.1.2",
+    "openai": "^4.93.0",
     "react-chartjs-2": "^5.3.0",
     "react-cmdk": "1.3.9",
     "react-drawio": "^1.0.3",

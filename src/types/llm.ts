@@ -13,8 +13,11 @@ export const BEDROCK_SUPPORTED_REGIONS = [
   'ap-southeast-2'
 ] as const
 
+export const LITELLM_SUPPORTED_REGIONS = ['default'] as const
+
 // Create a union type from the array
 export type BedrockSupportRegion = (typeof BEDROCK_SUPPORTED_REGIONS)[number]
+export type LiteLLMSupportRegion = (typeof LITELLM_SUPPORTED_REGIONS)[number]
 
 // Define thinking mode budget tokens
 export enum ThinkingModeBudget {
@@ -36,7 +39,7 @@ export interface LLM {
   readonly modelId: string // Make it readonly for immutability
   readonly modelName: string
   readonly toolUse: boolean
-  readonly regions: readonly BedrockSupportRegion[] // Use the specific region type
+  readonly regions: readonly (BedrockSupportRegion | LiteLLMSupportRegion)[] // Use the specific region type
   readonly maxTokensLimit?: number // Optional parameter for model-specific limits
   readonly supportsThinking?: boolean // Whether the model supports extended thinking
 }

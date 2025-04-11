@@ -1,9 +1,9 @@
 Language: [English](./README.md) / [Japanese](./README-ja.md)
 
 > [!IMPORTANT]
-> v1.6.0 からエージェントごとにツールの設定が可能になりました。v1.6.0 以前のバージョンで作成していたエージェントのプロンプトはそのままご利用いただけますが、エージェントごとに利用できるツールを設定する必要がありますのでご注意ください。
+> このリポジトリは、[Bedrock Engineer](https://github.com/aws-samples/bedrock-engineer) に LiteLLM サポートを追加することを目的とした fork です。
 
-# 🧙 Bedrock Engineer
+# 🧙 Bedrock Engineer (with LiteLLM)
 
 Bedrock Engineer は、[Amazon Bedrock](https://aws.amazon.com/bedrock/) を活用したソフトウェア開発タスクのための AI アシスタントです。大規模な言語モデルと実際のファイルシステム操作、Web検索機能などを含む自律的な AI エージェントがあなたの開発を支援します。
 

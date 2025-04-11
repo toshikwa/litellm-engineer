@@ -3,6 +3,7 @@ import cors from 'cors'
 import { RequestHandler, NextFunction } from 'express'
 import { RetrieveAndGenerateCommandInput } from '@aws-sdk/client-bedrock-agent-runtime'
 import { BedrockService, CallConverseAPIProps } from './bedrock'
+import { LiteLLMService } from './litellm'
 import { store } from '../../preload/store'
 import { createCategoryLogger } from '../../common/logger'
 
@@ -11,6 +12,7 @@ const apiLogger = createCategoryLogger('api:express')
 const bedrockLogger = createCategoryLogger('api:bedrock')
 
 export const bedrock = new BedrockService({ store })
+export const litellm = new LiteLLMService({ store })
 
 interface PromiseRequestHandler {
   (req: Request, res: Response, next: NextFunction): Promise<unknown>
@@ -84,7 +86,8 @@ api.post(
     res.setHeader('X-Accel-Buffering', 'no')
 
     try {
-      const result = await bedrock.converseStream(req.body)
+      const useLiteLLM = req.body.modelId.startsWith('litellm:')
+      const result = await (useLiteLLM ? litellm : bedrock).converseStream(req.body)
 
       if (!result.stream) {
         return res.end()
@@ -123,11 +126,9 @@ api.post(
     res.setHeader('Content-Type', 'application/json')
 
     try {
-      const result = await bedrock.converse({
-        modelId: req.body.modelId,
-        system: req.body.system,
-        messages: req.body.messages
-      })
+      const useLiteLLM = req.body.modelId.startsWith('litellm:')
+      const result = await (useLiteLLM ? litellm : bedrock).converse(req.body)
+
       return res.json(result)
     } catch (error: any) {
       bedrockLogger.error('Conversation error', {
@@ -175,8 +176,18 @@ api.get(
   wrap(async (_req: Request, res) => {
     res.setHeader('Content-Type', 'application/json')
     try {
-      const result = await bedrock.listModels()
-      return res.json(result)
+      let models = await bedrock.listModels()
+
+      try {
+        const litellmModels = await litellm.listModels()
+        models = [...litellmModels, ...models]
+      } catch (error) {
+        bedrockLogger.error('Error fetching LiteLLM models', {
+          error: error instanceof Error ? error.message : String(error)
+        })
+      }
+
+      return res.json(models)
     } catch (error: any) {
       bedrockLogger.error('ListModels error', {
         errorName: error.name,

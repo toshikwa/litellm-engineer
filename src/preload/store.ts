@@ -4,6 +4,7 @@ import { AgentChatConfig, KnowledgeBase, SendMsgKey, ToolState } from '../types/
 import { CustomAgent } from '../types/agent-chat'
 import { BedrockAgent } from '../types/agent'
 import { AWSCredentials } from '../main/api/bedrock/types'
+import { LiteLLMConfig } from '../types/litellm'
 
 const DEFAULT_SHELL = '/bin/bash'
 const DEFAULT_INFERENCE_PARAMS: InferenceParameters = {
@@ -40,6 +41,9 @@ type StoreScheme = {
 
   /** 言語モデルの推論パラメータ（温度、最大トークン数など） */
   inferenceParams: InferenceParameters
+
+  /** LiteLLM API設定 */
+  litellm?: LiteLLMConfig
 
   /** 思考モードの設定（Claude 3.7 Sonnet用） */
   thinkingMode?: ThinkingMode
