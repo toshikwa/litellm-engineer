@@ -81,13 +81,12 @@ export class ModelService {
       const modelId = model.model_name
       if (!modelMap.has(modelId)) {
         modelMap.set(modelId, {
-          modelId: modelId,
-          modelName: `${modelId} (LiteLLM)`,
+          modelId: `litellm:${modelId}`,
+          modelName: `litellm:${modelId}`,
           toolUse: modelInfo.supports_function_calling || modelInfo.supports_tool_choice || false,
           regions: ['default'],
           maxTokensLimit: modelInfo.max_tokens || 4096,
-          supportsThinking: modelInfo.supported_openai_params?.includes('thinking') || false,
-          provider: 'litellm'
+          supportsThinking: modelInfo.supported_openai_params?.includes('thinking') || false
         })
       }
     })

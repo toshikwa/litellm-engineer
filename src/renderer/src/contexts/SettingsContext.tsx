@@ -672,10 +672,6 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           }
           return model
         })
-        // Check if the current LLM is in the list of available models
-        if (!enhancedModels.includes(currentLLM)) {
-          setCurrentLLM(defaultModel)
-        }
         setAvailableModels(enhancedModels)
       }
     } catch (e: any) {
@@ -688,9 +684,6 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const updateLLM = (selectedModel: LLM) => {
     setCurrentLLM(selectedModel)
     window.store.set('llm', selectedModel)
-    const modelProviders = window.store.get('modelProviders') || {}
-    modelProviders[selectedModel.modelId] = selectedModel.provider || 'bedrock'
-    window.store.set('modelProviders', modelProviders)
   }
 
   const updateInferenceParams = (params: Partial<InferenceParameters>) => {

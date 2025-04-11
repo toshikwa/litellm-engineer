@@ -45,9 +45,6 @@ type StoreScheme = {
   /** LiteLLM API設定 */
   litellm?: LiteLLMConfig
 
-  /** モデルIDとプロバイダー（'bedrock'または'litellm'）のマッピング */
-  modelProviders?: Record<string, string>
-
   /** 思考モードの設定（Claude 3.7 Sonnet用） */
   thinkingMode?: ThinkingMode
 

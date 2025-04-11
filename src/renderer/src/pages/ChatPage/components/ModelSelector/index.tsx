@@ -10,7 +10,8 @@ type ModelSelectorProps = {
 
 const MODEL_ICONS = {
   claude: <LuBrainCircuit className="size-4" />,
-  llama: <LuBrainCircuit className="size-4" />
+  llama: <LuBrainCircuit className="size-4" />,
+  litellm: <LuBrainCircuit className="size-4" />
 } as const
 
 const MODEL_COLORS = {
@@ -21,6 +22,10 @@ const MODEL_COLORS = {
   llama: {
     icon: 'text-yellow-600 dark:text-yellow-400',
     hover: 'hover:bg-yellow-50 dark:hover:bg-yellow-900/50'
+  },
+  litellm: {
+    icon: 'text-blue-600 dark:text-blue-400',
+    hover: 'hover:bg-blue-50 dark:hover:bg-blue-900/50'
   }
 } as const
 
@@ -41,12 +46,14 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({ openable }) => {
   }, [])
 
   const getModelIcon = (modelId: string) => {
+    if (modelId.includes('litellm')) return MODEL_ICONS.litellm
     if (modelId.includes('claude')) return MODEL_ICONS.claude
     if (modelId.includes('llama')) return MODEL_ICONS.llama
     return <LuBrainCircuit className="size-4" />
   }
 
   const getModelColor = (modelId: string) => {
+    if (modelId.includes('litellm')) return MODEL_COLORS.litellm
     if (modelId.includes('claude')) return MODEL_COLORS.claude
     if (modelId.includes('llama')) return MODEL_COLORS.llama
     return {

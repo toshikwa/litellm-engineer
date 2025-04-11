@@ -50,25 +50,27 @@ export class ConverseService {
 
       // Get parameters
       const inferenceParams = this.context.store.get('inferenceParams')
-      const thinkingMode = this.context.store.get('thinkingMode')
-      const thinkingEnabled = Boolean(
-        thinkingMode?.type === 'enabled' && thinkingMode?.budget_tokens
-      )
+      let thinking = this.context.store.get('thinkingMode')
+      if (thinking?.type === 'enabled' && thinking?.budget_tokens) {
+        inferenceParams.temperature = 1
+        inferenceParams.topP = undefined
+      } else {
+        thinking = undefined
+      }
 
       // Make API call to LiteLLM
       const chatInput = {
-        model: props.modelId,
-        messages: this.prepareMessages(props.messages, props.system[0].text),
+        model: ConverseService.prepareModelId(props.modelId),
+        messages: ConverseService.prepareMessages(props.messages, props.system[0].text),
         temperature: inferenceParams.temperature,
-        max_tokens: inferenceParams.maxTokens,
-        top_p: thinkingEnabled ? undefined : inferenceParams.topP,
-        tools: this.convertToolsToOpenAIFormat(props.toolConfig),
-        thinking: thinkingEnabled ? thinkingMode : undefined
+        top_p: inferenceParams.topP,
+        tools: ConverseService.convertToolsToOpenAIFormat(props.toolConfig),
+        thinking
       }
       const response = await client.chat.completions.create(chatInput)
 
       // Convert response to Bedrock format
-      return this.convertToBedrock(response)
+      return ConverseService.convertToBedrock(response)
     } catch (error: any) {
       return this.handleError(error, props, retries, 'converse')
     }
@@ -91,37 +93,46 @@ export class ConverseService {
       // Create LiteLLM client
       const client = createLiteLLMClient(liteLLMConfig.credentials)
 
-      // Get inference parameters
+      // Get parameters
       const inferenceParams = this.context.store.get('inferenceParams')
-      const thinkingMode = this.context.store.get('thinkingMode')
-      const thinkingEnabled = Boolean(
-        thinkingMode?.type === 'enabled' && thinkingMode?.budget_tokens
-      )
+      let thinking = this.context.store.get('thinkingMode')
+      if (thinking?.type === 'enabled' && thinking?.budget_tokens) {
+        inferenceParams.temperature = 1
+        inferenceParams.topP = undefined
+      } else {
+        thinking = undefined
+      }
 
       // Make streaming API call to LiteLLM
       const chatInput = {
-        model: props.modelId,
-        messages: this.prepareMessages(props.messages, props.system[0].text),
+        model: ConverseService.prepareModelId(props.modelId),
+        messages: ConverseService.prepareMessages(props.messages, props.system[0].text),
         temperature: inferenceParams.temperature,
-        max_tokens: inferenceParams.maxTokens,
-        top_p: thinkingEnabled ? undefined : inferenceParams.topP,
-        tools: this.convertToolsToOpenAIFormat(props.toolConfig),
-        thinking: thinkingEnabled ? thinkingMode : undefined,
+        top_p: inferenceParams.topP,
+        tools: ConverseService.convertToolsToOpenAIFormat(props.toolConfig),
+        thinking,
         stream: true
       } as ChatCompletionCreateParamsStreaming
       const stream = await client.chat.completions.create(chatInput)
 
       // Convert stream to Bedrock format
-      return this.convertStreamToBedrock(stream)
+      return ConverseService.convertStreamToBedrock(stream)
     } catch (error: any) {
       return this.handleError(error, props, retries, 'converseStream')
     }
   }
 
   /**
+   * Prepare model id
+   */
+  private static prepareModelId(modelId: string): string {
+    return modelId.replace('litellm:', '')
+  }
+
+  /**
    * Prepare messages for OpenAI format
    */
-  private prepareMessages(
+  private static prepareMessages(
     messages: Message[],
     systemMessage: string
   ): ChatCompletionMessageParam[] {
@@ -138,7 +149,6 @@ export class ConverseService {
     // Convert Bedrock messages to OpenAI format
     for (const message of messages) {
       if (!message.content) continue
-
       // Handle tool result
       if (message.content[0]?.toolResult?.content) {
         for (const c of message.content) {
@@ -146,7 +156,7 @@ export class ConverseService {
             result.push({
               role: 'tool',
               tool_call_id: c.toolResult.toolUseId,
-              content: c.toolResult.content[0].text
+              content: JSON.stringify(c.toolResult.content)
             } as ChatCompletionToolMessageParam)
           }
         }
@@ -237,7 +247,7 @@ export class ConverseService {
   /**
    * Convert OpenAI response to Bedrock format
    */
-  private convertToBedrock(response: any): ConverseCommandOutput {
+  private static convertToBedrock(response: any): ConverseCommandOutput {
     const choice = response.choices[0]
     const content: ContentBlock[] = []
 
@@ -284,7 +294,7 @@ export class ConverseService {
    * Convert Bedrock tools to OpenAI format
    * Transforms Bedrock tool configuration to OpenAI's expected format
    */
-  private convertToolsToOpenAIFormat(
+  private static convertToolsToOpenAIFormat(
     toolConfig: ToolConfiguration
   ): ChatCompletionTool[] | undefined {
     let tools: ChatCompletionTool[] | undefined = undefined
@@ -316,7 +326,7 @@ export class ConverseService {
         })
       }
     }
-    return tools && tools
+    return tools
   }
 
   /**
@@ -340,7 +350,7 @@ export class ConverseService {
   /**
    * Convert OpenAI stream to Bedrock format
    */
-  private convertStreamToBedrock(stream: Stream<any>): ConverseStreamCommandOutput {
+  private static convertStreamToBedrock(stream: Stream<any>): ConverseStreamCommandOutput {
     // Store reference to the instance for use in the generator
     const transformedStream = {
       [Symbol.asyncIterator]: async function* () {

@@ -42,7 +42,6 @@ export interface LLM {
   readonly regions: readonly (BedrockSupportRegion | LiteLLMSupportRegion)[] // Use the specific region type
   readonly maxTokensLimit?: number // Optional parameter for model-specific limits
   readonly supportsThinking?: boolean // Whether the model supports extended thinking
-  readonly provider?: 'bedrock' | 'litellm' // Provider of the model
 }
 
 // Type guard for LLM validation

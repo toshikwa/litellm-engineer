@@ -14,11 +14,6 @@ const bedrockLogger = createCategoryLogger('api:bedrock')
 export const bedrock = new BedrockService({ store })
 export const litellm = new LiteLLMService({ store })
 
-export const getModelProvider = (modelId: string): string => {
-  const modelProviders = store.get('modelProviders') || {}
-  return modelProviders[modelId] || 'unknown'
-}
-
 interface PromiseRequestHandler {
   (req: Request, res: Response, next: NextFunction): Promise<unknown>
 }
@@ -91,10 +86,8 @@ api.post(
     res.setHeader('X-Accel-Buffering', 'no')
 
     try {
-      const useLiteLLM = getModelProvider(req.body.modelId) === 'litellm'
-      const result = useLiteLLM
-        ? await litellm.converseStream(req.body)
-        : await bedrock.converseStream(req.body)
+      const useLiteLLM = req.body.modelId.startsWith('litellm:')
+      const result = await (useLiteLLM ? litellm : bedrock).converseStream(req.body)
 
       if (!result.stream) {
         return res.end()
@@ -133,10 +126,8 @@ api.post(
     res.setHeader('Content-Type', 'application/json')
 
     try {
-      const useLiteLLM = getModelProvider(req.body.modelId) === 'litellm'
-      const result = useLiteLLM
-        ? await litellm.converse(req.body)
-        : await bedrock.converse(req.body)
+      const useLiteLLM = req.body.modelId.startsWith('litellm:')
+      const result = await (useLiteLLM ? litellm : bedrock).converse(req.body)
 
       return res.json(result)
     } catch (error: any) {
@@ -185,33 +176,16 @@ api.get(
   wrap(async (_req: Request, res) => {
     res.setHeader('Content-Type', 'application/json')
     try {
-      let models: any[] = []
-
-      const bedrockModels = await bedrock.listModels()
-      models = bedrockModels.map((model) => ({
-        ...model,
-        provider: 'bedrock'
-      }))
+      let models = await bedrock.listModels()
 
       try {
-        // Add LiteLLM models
-        const litellmModels = (await litellm.listModels()).map((model) => ({
-          ...model,
-          provider: 'litellm'
-        }))
+        const litellmModels = await litellm.listModels()
         models = [...litellmModels, ...models]
       } catch (error) {
         bedrockLogger.error('Error fetching LiteLLM models', {
           error: error instanceof Error ? error.message : String(error)
         })
       }
-
-      // Update model providers
-      const modelProviders = {}
-      models.forEach((model) => {
-        modelProviders[model.modelId] = model.provider
-      })
-      store.set('modelProviders', modelProviders)
 
       return res.json(models)
     } catch (error: any) {
