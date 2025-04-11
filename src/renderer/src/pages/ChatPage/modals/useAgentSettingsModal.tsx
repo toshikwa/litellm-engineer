@@ -86,7 +86,8 @@ const AgentSettingsModal = React.memo(
       const newAgent = {
         ...agent,
         id: crypto.randomUUID(),
-        name: `${agent.name} (${t('copy')})`
+        name: `${agent.name} (${t('copy')})`,
+        isCustom: true // 明示的にtrueに設定して削除・編集可能にする
       }
       saveCustomAgents([...customAgents, newAgent])
     }
