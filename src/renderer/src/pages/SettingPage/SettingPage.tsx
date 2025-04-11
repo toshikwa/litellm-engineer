@@ -8,7 +8,8 @@ import {
   AWSSection,
   AdvancedSection,
   NotificationSection,
-  GuardrailSettings
+  GuardrailSettings,
+  LiteLLMSection
 } from './components/sections'
 import { ConfigDirSection } from './components/sections/ConfigDirSection'
 
@@ -46,7 +47,10 @@ export const SettingPage: React.FC = () => {
     bedrockSettings,
     updateBedrockSettings,
     guardrailSettings,
-    updateGuardrailSettings
+    updateGuardrailSettings,
+    liteLLMConfig,
+    updateLiteLLMApiKey,
+    updateLiteLLMBaseURL
   } = useSetting()
 
   const handleChangeLLM = (modelId: string) => {
@@ -83,6 +87,13 @@ export const SettingPage: React.FC = () => {
         onUpdateContextLength={updateContextLength}
         enablePromptCache={enablePromptCache}
         onUpdateEnablePromptCache={setEnablePromptCache}
+      />
+
+      <LiteLLMSection
+        liteLLMApiKey={liteLLMConfig.credentials.apiKey}
+        liteLLMBaseURL={liteLLMConfig.credentials.baseURL}
+        onUpdateLiteLLMApiKey={updateLiteLLMApiKey}
+        onUpdateLiteLLMBaseURL={updateLiteLLMBaseURL}
       />
 
       <AWSSection

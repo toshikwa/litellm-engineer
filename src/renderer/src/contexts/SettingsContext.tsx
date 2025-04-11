@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react'
 import { KnowledgeBase, McpServerConfig, SendMsgKey, ToolState } from 'src/types/agent-chat'
 import { ToolName } from 'src/types/tools'
+import { LiteLLMConfig } from '@/types/litellm'
 import { listModels } from '@renderer/lib/api'
 import { CustomAgent } from '@/types/agent-chat'
 import { replacePlaceholders } from '@renderer/pages/ChatPage/utils/placeholder'
@@ -29,6 +30,11 @@ export interface SettingsContextType {
   // Advanced Settings
   sendMsgKey: SendMsgKey
   updateSendMsgKey: (key: SendMsgKey) => void
+
+  // LiteLLM Settings
+  liteLLMConfig: LiteLLMConfig
+  updateLiteLLMApiKey: (apiKey: string) => void
+  updateLiteLLMBaseURL: (baseURL: string) => void
 
   // Agent Chat Settings
   contextLength: number
@@ -177,6 +183,15 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   // Advanced Settings
   const [sendMsgKey, setSendMsgKey] = useState<SendMsgKey>('Enter')
 
+  // LiteLLM Settings
+  const [liteLLMConfig, setLiteLLMConfig] = useState<LiteLLMConfig>({
+    credentials: {
+      apiKey: '',
+      baseURL: 'http://localhost:4000'
+    },
+    enabled: true
+  })
+
   // Agent Chat Settings
   const [contextLength, setContextLength] = useState<number>(60)
   const [enablePromptCache, setStateEnablePromptCache] = useState<boolean>(true)
@@ -264,6 +279,20 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     // Load Advanced Settings
     const advancedSetting = window.store.get('advancedSetting')
     setSendMsgKey(advancedSetting?.keybinding?.sendMsgKey)
+
+    // Load LiteLLM Settings
+    const liteLLMSetting = window.store.get('litellm')
+    if (liteLLMSetting) {
+      setLiteLLMConfig(liteLLMSetting)
+    } else {
+      window.store.set('litellm', {
+        credentials: {
+          apiKey: '',
+          baseURL: 'http://localhost:4000'
+        },
+        enabled: false
+      })
+    }
 
     // Load Notification Settings
     const notificationSetting = window.store.get('notification')
@@ -596,6 +625,30 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     })
   }
 
+  const updateLiteLLMApiKey = (apiKey: string) => {
+    const updatedConfig = {
+      credentials: {
+        baseURL: liteLLMConfig.credentials.baseURL,
+        apiKey
+      },
+      enabled: apiKey && liteLLMConfig.credentials.baseURL ? true : false
+    }
+    setLiteLLMConfig(updatedConfig)
+    window.store.set('litellm', updatedConfig)
+  }
+
+  const updateLiteLLMBaseURL = (baseURL: string) => {
+    const updatedConfig = {
+      credentials: {
+        baseURL,
+        apiKey: liteLLMConfig.credentials.apiKey
+      },
+      enabled: baseURL && liteLLMConfig.credentials.apiKey ? true : false
+    }
+    setLiteLLMConfig(updatedConfig)
+    window.store.set('litellm', updatedConfig)
+  }
+
   const updateContextLength = (length: number) => {
     setContextLength(length)
     const agentChatConfig = window.store.get('agentChatConfig') || {}
@@ -631,6 +684,9 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const updateLLM = (selectedModel: LLM) => {
     setCurrentLLM(selectedModel)
     window.store.set('llm', selectedModel)
+    const modelProviders = window.store.get('modelProviders') || {}
+    modelProviders[selectedModel.modelId] = selectedModel.provider || 'bedrock'
+    window.store.set('modelProviders', modelProviders)
   }
 
   const updateInferenceParams = (params: Partial<InferenceParameters>) => {
@@ -1189,6 +1245,11 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     // Advanced Settings
     sendMsgKey,
     updateSendMsgKey,
+
+    // LiteLLM Settings
+    liteLLMConfig,
+    updateLiteLLMApiKey,
+    updateLiteLLMBaseURL,
 
     // Agent Chat Settings
     contextLength,

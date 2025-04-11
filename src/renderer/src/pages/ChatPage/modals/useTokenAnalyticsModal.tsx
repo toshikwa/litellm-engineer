@@ -449,7 +449,6 @@ export const TokenAnalyticsModal: React.FC<TokenAnalyticsModalProps> = ({
         <h2 className="text-xl font-bold">{t('Token Usage Analytics')}</h2>
       </Modal.Header>
       <Modal.Body className="max-h-[80vh] overflow-y-auto">
-
         {/* セッション全体の統計 */}
         <div className="mb-6 p-4 bg-gray-100 dark:bg-gray-700 rounded-lg">
           <h3 className="text-lg font-semibold mb-2 dark:text-white">{t('Session Summary')}</h3>

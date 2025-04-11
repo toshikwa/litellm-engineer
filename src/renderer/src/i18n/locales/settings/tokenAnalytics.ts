@@ -33,7 +33,8 @@ export const tokenAnalyticsSettings = {
     'Average Cost per Message': 'Average Cost per Message',
     'Token Usage Efficiency': 'Token Usage Efficiency',
     'Cache Efficiency': 'Cache Efficiency',
-    'Saved approximately {{amount}} by using prompt cache': 'Saved approximately {{amount}} by using prompt cache'
+    'Saved approximately {{amount}} by using prompt cache':
+      'Saved approximately {{amount}} by using prompt cache'
   },
   ja: {
     'Token Usage Analytics': 'トークン使用量分析',
@@ -69,6 +70,7 @@ export const tokenAnalyticsSettings = {
     'Average Cost per Message': 'メッセージあたりの平均コスト',
     'Token Usage Efficiency': 'トークン使用効率',
     'Cache Efficiency': 'キャッシュ効率',
-    'Saved approximately {{amount}} by using prompt cache': 'プロンプトキャッシュを利用したことで約 {{amount}} 削減しました'
+    'Saved approximately {{amount}} by using prompt cache':
+      'プロンプトキャッシュを利用したことで約 {{amount}} 削減しました'
   }
 }
