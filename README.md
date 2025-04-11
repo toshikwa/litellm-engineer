@@ -1,7 +1,7 @@
 Language: [English](./README.md) / [Japanese](./README-ja.md)
 
 > [!IMPORTANT]
-> Starting with v1.6.0, it is now possible to set tools for each agent. Agent prompts created in versions prior to v1.6.0 can still be used, but please note that you will need to set the tools available to each agent.
+> This repository is a fork of [Bedrock Engineer](https://github.com/aws-samples/bedrock-engineer) with the purpose of adding LiteLLM support.
 
 # 🧙 Bedrock Engineer (with LiteLLM)
 
