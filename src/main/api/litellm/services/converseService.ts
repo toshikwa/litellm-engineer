@@ -203,10 +203,12 @@ export class ConverseService {
           type: 'text',
           text: block.text
         })
-      } else if (block.image) {
+      } else if (block.image && block.image.source?.bytes) {
         result.push({
           type: 'image_url',
-          image_url: { url: `data:${block.image.format};base64,${block.image.source}` }
+          image_url: {
+            url: `data:image/${block.image.format};base64,${block.image.source.bytes}`
+          }
         })
       } else if (block.reasoningContent?.reasoningText?.text) {
         result.push({
