@@ -1,7 +1,7 @@
 Language: [English](./README.md) / [Japanese](./README-ja.md)
 
 > [!IMPORTANT]
-> This repository is a fork of [Bedrock Engineer](https://github.com/aws-samples/bedrock-engineer) with the purpose of adding LiteLLM support. Currently, only Amazon Bedrock is supported and tested as a backend.
+> This repository is a fork of [Bedrock Engineer](https://github.com/aws-samples/bedrock-engineer) with the purpose of adding LiteLLM support. Currently, only Amazon Bedrock is supported as a backend.
 >
 > Mac users can download the application [here](https://github.com/toshikwa/litellm-engineer/releases/latest/download/bedrock-engineer-1.8.1-litellm.2.dmg).
 
