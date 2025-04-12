@@ -300,7 +300,7 @@ export class ConverseService {
         outputTokens: response.usage?.completion_tokens,
         totalTokens: response.usage?.total_tokens + response.usage?.cache_creation_input_tokens
       },
-      metrics: { latencyMs: 0 }, // TODO
+      metrics: { latencyMs: 0 },
       $metadata: { httpStatusCode: 200 }
     }
   }
@@ -379,12 +379,14 @@ export class ConverseService {
           // Send usage data
           if (chunk.usage) {
             yield {
-              usage: {
-                cacheReadInputTokens: chunk.usage?.cache_read_input_tokens,
-                cacheWriteInputTokens: chunk.usage?.cache_creation_input_tokens,
-                inputTokens: chunk.usage?.prompt_tokens - chunk.usage?.cache_read_input_tokens,
-                outputTokens: chunk.usage?.completion_tokens,
-                totalTokens: chunk.usage?.total_tokens + chunk.usage?.cache_creation_input_tokens
+              metadata: {
+                usage: {
+                  cacheReadInputTokens: chunk.usage?.cache_read_input_tokens,
+                  cacheWriteInputTokens: chunk.usage?.cache_creation_input_tokens,
+                  inputTokens: chunk.usage?.prompt_tokens - chunk.usage?.cache_read_input_tokens,
+                  outputTokens: chunk.usage?.completion_tokens,
+                  totalTokens: chunk.usage?.total_tokens + chunk.usage?.cache_creation_input_tokens
+                }
               }
             }
           }
