@@ -1,7 +1,7 @@
 Language: [English](./README.md) / [Japanese](./README-ja.md)
 
 > [!IMPORTANT]
-> このリポジトリは、[Bedrock Engineer](https://github.com/aws-samples/bedrock-engineer) に LiteLLM サポートを追加することを目的とした fork です。現時点では、バックエンドとして Amazon Bedrock のみサポートしています。
+> このリポジトリは、[Bedrock Engineer](https://github.com/aws-samples/bedrock-engineer) に LiteLLM サポートを追加することを目的とした fork です。現時点では、LiteLLM のバックエンドとして Amazon Bedrock のみサポートしています。
 >
 > Mac をお使いの方は、[こちら](https://github.com/toshikwa/litellm-engineer/releases/latest/download/bedrock-engineer-1.8.1-litellm.2.dmg)からアプリケーションをダウンロードしてください。
 
