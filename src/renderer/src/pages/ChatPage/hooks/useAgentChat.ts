@@ -324,8 +324,12 @@ export const useAgentChat = (
     // Context長に基づいてメッセージを制限
     const limitedMessages = limitContextLength(currentMessages, contextLength)
 
+    const AddCachePoint = modelId.startsWith('litellm:')
+      ? isPromptCacheSupported(modelId, liteLLMConfig.cachingType)
+      : enablePromptCache
+
     // キャッシュポイントを追加（前回のキャッシュポイントを引き継ぐ）
-    const messagesWithCachePoints = enablePromptCache
+    const messagesWithCachePoints = AddCachePoint
       ? addCachePointsToMessages(
           removeTraces(limitedMessages),
           modelId,
@@ -337,7 +341,7 @@ export const useAgentChat = (
 
     // モデルがPrompt Cacheをサポートしている場合のみ、次回のキャッシュポイントを更新
     if (
-      enablePromptCache &&
+      AddCachePoint &&
       isPromptCacheSupported(modelId, liteLLMConfig.cachingType) &&
       getCacheableFields(modelId, liteLLMConfig.cachingType).includes('messages')
     ) {
@@ -350,11 +354,11 @@ export const useAgentChat = (
     }
 
     // システムプロンプトとツール設定にもキャッシュポイントを追加
-    if (props.system && enablePromptCache) {
+    if (props.system && AddCachePoint) {
       props.system = addCachePointToSystem(props.system, modelId, liteLLMConfig.cachingType)
     }
 
-    if (props.toolConfig && enablePromptCache) {
+    if (props.toolConfig && AddCachePoint) {
       props.toolConfig = addCachePointToTools(props.toolConfig, modelId, liteLLMConfig.cachingType)
     }
 
