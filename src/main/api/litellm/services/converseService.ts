@@ -152,19 +152,17 @@ export class ConverseService {
       if (!message.content) continue
       // Handle tool result
       if (message.content[0]?.toolResult?.content) {
-        for (const c of message.content) {
-          if (c.toolResult && c.toolResult.content) {
-            result.push({
-              role: 'tool',
-              tool_call_id: c.toolResult.toolUseId,
-              content: JSON.stringify(c.toolResult.content)
-            } as ChatCompletionToolMessageParam)
-          }
+        const c = message.content[0]
+        if (c.toolResult && c.toolResult.content) {
+          result.push({
+            role: 'tool',
+            tool_call_id: c.toolResult.toolUseId,
+            content: JSON.stringify(c.toolResult.content),
+            cache_control: ConverseService.convertCacheControl(message.content)
+          } as ChatCompletionToolMessageParam)
         }
-      }
-
-      // Handle assistant or user messages
-      else {
+      } else {
+        // Handle assistant or user messages
         result.push({
           role: ConverseService.convertRole(message.role),
           content: ConverseService.convertContent(message.content),
