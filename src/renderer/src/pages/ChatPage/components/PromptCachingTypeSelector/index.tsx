@@ -1,19 +1,28 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { useSettings } from '@renderer/contexts/SettingsContext'
-import { ThinkingModeBudget } from '@/types/llm'
-import { LuBrain } from 'react-icons/lu'
+import {
+  PromptCachingType,
+  LITELLM_SUPPORTED_CACHING_TYPES,
+  LITELLM_CACHING_TYPE_DESCRIPTIONS
+} from '@/types/litellm'
 import { useTranslation } from 'react-i18next'
-import { FiChevronDown } from 'react-icons/fi'
+import { FiChevronDown, FiDatabase } from 'react-icons/fi'
+import { useSettings } from '@renderer/contexts/SettingsContext'
 
-type ThinkingModeSelectorProps = {
+type PromptCachingTypeSelectorProps = {
   className?: string
 }
 
-export const ThinkingModeSelector: React.FC<ThinkingModeSelectorProps> = ({ className }) => {
+export const PromptCachingTypeSelector: React.FC<PromptCachingTypeSelectorProps> = ({
+  className
+}) => {
   const [isOpen, setIsOpen] = useState(false)
+  const { liteLLMConfig, updateLiteLLMCachingType } = useSettings()
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const { currentLLM, thinkingMode, updateThinkingMode } = useSettings()
   const { t } = useTranslation()
+
+  const getCachingType = (): PromptCachingType => {
+    return liteLLMConfig.cachingType
+  }
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -22,26 +31,18 @@ export const ThinkingModeSelector: React.FC<ThinkingModeSelectorProps> = ({ clas
         setIsOpen(false)
       }
     }
-
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // Only show for Claude 3.7 Sonnet
-  if (!currentLLM.supportsThinking) {
-    return null
-  }
-
-  const options = [
-    { label: t('thinkingMode.none'), value: ThinkingModeBudget.NONE },
-    { label: t('thinkingMode.quick'), value: ThinkingModeBudget.QUICK },
-    { label: t('thinkingMode.normal'), value: ThinkingModeBudget.NORMAL },
-    { label: t('thinkingMode.deep'), value: ThinkingModeBudget.DEEP },
-    { label: t('thinkingMode.deeper'), value: ThinkingModeBudget.DEEPER }
-  ]
+  const options = LITELLM_SUPPORTED_CACHING_TYPES.map((type) => ({
+    // Fallback to uppercase if translation not found
+    label: t(`promptCaching.${type}`, { defaultValue: type[0].toUpperCase() + type.slice(1) }),
+    value: type
+  }))
 
   const getSelectedLabel = () => {
-    const selected = options.find((option) => option.value === thinkingMode?.budget_tokens)
+    const selected = options.find((option) => option.value === getCachingType())
     return selected ? selected.label : options[0].label
   }
 
@@ -51,9 +52,9 @@ export const ThinkingModeSelector: React.FC<ThinkingModeSelectorProps> = ({ clas
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-300 rounded-md transition-colors"
-        title={t('thinkingMode.title')}
+        title={t('promptCaching.title')}
       >
-        <LuBrain className="size-4 text-purple-600 dark:text-purple-400" />
+        <FiDatabase className="size-4 text-blue-600 dark:text-blue-400" />
         <span className="whitespace-nowrap">{getSelectedLabel()}</span>
         <FiChevronDown className="text-gray-400 dark:text-gray-500" size={16} />
       </button>
@@ -67,20 +68,19 @@ export const ThinkingModeSelector: React.FC<ThinkingModeSelectorProps> = ({ clas
             <div
               key={option.value}
               onClick={() => {
-                updateThinkingMode({
-                  type: option.value === 0 ? 'disabled' : 'enabled',
-                  budget_tokens: option.value
-                })
+                updateLiteLLMCachingType(option.value)
                 setIsOpen(false)
               }}
               className={`
                 flex items-center gap-3 px-3 py-2 cursor-pointer
-                ${thinkingMode?.budget_tokens === option.value ? 'bg-gray-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'}
+                ${getCachingType() === option.value ? 'bg-gray-50 dark:bg-gray-800' : 'bg-white dark:bg-gray-900'}
                 hover:bg-gray-50 dark:hover:bg-gray-800
                 transition-colors
               `}
             >
-              <span className="text-sm whitespace-nowrap dark:text-gray-100">{option.label}</span>
+              <span className="text-sm whitespace-nowrap dark:text-gray-100">
+                {option.label} ({LITELLM_CACHING_TYPE_DESCRIPTIONS[option.value]})
+              </span>
             </div>
           ))}
         </div>

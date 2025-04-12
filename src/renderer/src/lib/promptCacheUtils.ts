@@ -1,3 +1,4 @@
+import { PromptCachingType } from '@/types/litellm'
 import type { Message, ContentBlock, ToolConfiguration } from '@aws-sdk/client-bedrock-runtime'
 
 /**
@@ -40,7 +41,10 @@ export function getBaseModelId(modelId: string): string {
  * @param modelId モデルID (リージョンプレフィックスを含む可能性あり)
  * @returns Prompt Cacheをサポートしている場合はtrue、そうでない場合はfalse
  */
-export function isPromptCacheSupported(modelId: string): boolean {
+export function isPromptCacheSupported(modelId: string, cachingType: PromptCachingType): boolean {
+  if (modelId.startsWith('litellm:')) {
+    return isPromptCacheSupportedByCachingType(cachingType)
+  }
   const baseModelId = getBaseModelId(modelId)
   return !!MODEL_CACHE_SUPPORT[baseModelId]
 }
@@ -51,9 +55,31 @@ export function isPromptCacheSupported(modelId: string): boolean {
  * @param modelId モデルID (リージョンプレフィックスを含む可能性あり)
  * @returns キャッシュ可能なフィールドの配列
  */
-export function getCacheableFields(modelId: string): CacheableField[] {
+export function getCacheableFields(
+  modelId: string,
+  cachingType: PromptCachingType
+): CacheableField[] {
+  if (modelId.startsWith('litellm:')) {
+    return getCacheableFieldsByCachingType(cachingType)
+  }
   const baseModelId = getBaseModelId(modelId)
   return MODEL_CACHE_SUPPORT[baseModelId] || []
+}
+
+function isPromptCacheSupportedByCachingType(cachingType: PromptCachingType): boolean {
+  return cachingType !== 'none'
+}
+
+function getCacheableFieldsByCachingType(cachingType: PromptCachingType): CacheableField[] {
+  switch (cachingType) {
+    case 'claude':
+      return ['messages', 'system', 'tools']
+    case 'nova':
+      return ['system']
+    case 'none':
+    default:
+      return []
+  }
 }
 
 /**
@@ -62,16 +88,21 @@ export function getCacheableFields(modelId: string): CacheableField[] {
  * @param messages メッセージ配列
  * @param modelId モデルID
  * @param firstCachePoint 最初のキャッシュポイント
+ * @param cachingType Cachyng type for LiteLLM
  * @returns キャッシュポイントを追加したメッセージ配列
  */
 export function addCachePointsToMessages(
   messages: Message[],
   modelId: string,
+  cachingType: PromptCachingType,
   firstCachePoint?: number
 ): Message[] {
   // モデルがPrompt Cacheをサポートしていない場合、またはmessagesフィールドがキャッシュ対象でない場合は
   // 元のメッセージをそのまま返す
-  if (!isPromptCacheSupported(modelId) || !getCacheableFields(modelId).includes('messages')) {
+  if (
+    !isPromptCacheSupported(modelId, cachingType) ||
+    !getCacheableFields(modelId, cachingType).includes('messages')
+  ) {
     return messages
   }
 
@@ -116,11 +147,15 @@ export function addCachePointsToMessages(
  */
 export function addCachePointToSystem<T extends ContentBlock[] | { text: string }[]>(
   system: T,
-  modelId: string
+  modelId: string,
+  cachingType: PromptCachingType
 ): T {
   // モデルがPrompt Cacheをサポートしていない場合、またはsystemフィールドがキャッシュ対象でない場合は
   // 元のシステムプロンプトをそのまま返す
-  if (!isPromptCacheSupported(modelId) || !getCacheableFields(modelId).includes('system')) {
+  if (
+    !isPromptCacheSupported(modelId, cachingType) ||
+    !getCacheableFields(modelId, cachingType).includes('system')
+  ) {
     return system
   }
 
@@ -146,7 +181,8 @@ export function addCachePointToSystem<T extends ContentBlock[] | { text: string 
  */
 export function addCachePointToTools(
   toolConfig: ToolConfiguration | undefined,
-  modelId: string
+  modelId: string,
+  cachingType: PromptCachingType
 ): ToolConfiguration | undefined {
   // ツール設定がない場合はundefinedを返す
   if (!toolConfig) {
@@ -155,7 +191,10 @@ export function addCachePointToTools(
 
   // モデルがPrompt Cacheをサポートしていない場合、またはtoolsフィールドがキャッシュ対象でない場合は
   // 元のツール設定をそのまま返す
-  if (!isPromptCacheSupported(modelId) || !getCacheableFields(modelId).includes('tools')) {
+  if (
+    !isPromptCacheSupported(modelId, cachingType) ||
+    !getCacheableFields(modelId, cachingType).includes('tools')
+  ) {
     return toolConfig
   }
 
@@ -179,7 +218,11 @@ export function addCachePointToTools(
  * @param metadata メタデータ
  * @param modelId モデルID
  */
-export function logCacheUsage(metadata: any, modelId: string): void {
+export function logCacheUsage(
+  metadata: any,
+  modelId: string,
+  cachingType: PromptCachingType
+): void {
   // メタデータからキャッシュ関連の情報を抽出
   const inputTokens = metadata.usage?.inputTokens
   const outputTokens = metadata.usage?.outputTokens
@@ -198,7 +241,7 @@ export function logCacheUsage(metadata: any, modelId: string): void {
     cacheWriteInputTokens,
     cacheHitRatio,
     modelId,
-    isPromptCacheSupported: isPromptCacheSupported(modelId),
-    cacheableFields: getCacheableFields(modelId)
+    isPromptCacheSupported: isPromptCacheSupported(modelId, cachingType),
+    cacheableFields: getCacheableFields(modelId, cachingType)
   })
 }

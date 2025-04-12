@@ -97,7 +97,8 @@ export const useAgentChat = (
     guardrailSettings,
     getAgentTools,
     agents,
-    enablePromptCache
+    enablePromptCache,
+    liteLLMConfig
   } = useSettings()
 
   // エージェントIDからツール設定を取得
@@ -325,15 +326,20 @@ export const useAgentChat = (
 
     // キャッシュポイントを追加（前回のキャッシュポイントを引き継ぐ）
     const messagesWithCachePoints = enablePromptCache
-      ? addCachePointsToMessages(removeTraces(limitedMessages), modelId, lastCachePoint.current)
+      ? addCachePointsToMessages(
+          removeTraces(limitedMessages),
+          modelId,
+          liteLLMConfig.cachingType,
+          lastCachePoint.current
+        )
       : removeTraces(limitedMessages)
     props.messages = messagesWithCachePoints
 
     // モデルがPrompt Cacheをサポートしている場合のみ、次回のキャッシュポイントを更新
     if (
       enablePromptCache &&
-      isPromptCacheSupported(modelId) &&
-      getCacheableFields(modelId).includes('messages')
+      isPromptCacheSupported(modelId, liteLLMConfig.cachingType) &&
+      getCacheableFields(modelId, liteLLMConfig.cachingType).includes('messages')
     ) {
       // 次回の会話のために現在のキャッシュポイントを更新
       // 現在のメッセージ配列の最後のインデックスを次回の最初のキャッシュポイントとして設定
@@ -345,11 +351,11 @@ export const useAgentChat = (
 
     // システムプロンプトとツール設定にもキャッシュポイントを追加
     if (props.system && enablePromptCache) {
-      props.system = addCachePointToSystem(props.system, modelId)
+      props.system = addCachePointToSystem(props.system, modelId, liteLLMConfig.cachingType)
     }
 
     if (props.toolConfig && enablePromptCache) {
-      props.toolConfig = addCachePointToTools(props.toolConfig, modelId)
+      props.toolConfig = addCachePointToTools(props.toolConfig, modelId, liteLLMConfig.cachingType)
     }
 
     const generator = streamChatCompletion(props, abortController.current.signal)
@@ -597,7 +603,7 @@ export const useAgentChat = (
           }
 
           // Prompt Cacheの使用状況をログ出力
-          logCacheUsage(metadata, modelId)
+          logCacheUsage(metadata, modelId, liteLLMConfig.cachingType)
 
           // 直近のアシスタントメッセージにメタデータを関連付ける
           if (lastAssistantMessageId.current) {

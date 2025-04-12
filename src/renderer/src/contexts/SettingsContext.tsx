@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useMemo, useCallback } from 'react'
 import { KnowledgeBase, McpServerConfig, SendMsgKey, ToolState } from 'src/types/agent-chat'
 import { ToolName } from 'src/types/tools'
-import { LiteLLMConfig } from '@/types/litellm'
+import { LiteLLMConfig, PromptCachingType } from '@/types/litellm'
 import { listModels } from '@renderer/lib/api'
 import { CustomAgent } from '@/types/agent-chat'
 import { replacePlaceholders } from '@renderer/pages/ChatPage/utils/placeholder'
@@ -21,6 +21,15 @@ const DEFAULT_INFERENCE_PARAMS: InferenceParameters = {
   topP: 0.9
 }
 
+const DEFAULT_LITELLM_CONFIG: LiteLLMConfig = {
+  enabled: true,
+  credentials: {
+    apiKey: '',
+    baseURL: 'http://localhost:4000'
+  },
+  cachingType: 'none'
+}
+
 interface CommandConfig {
   pattern: string
   description: string
@@ -35,6 +44,7 @@ export interface SettingsContextType {
   liteLLMConfig: LiteLLMConfig
   updateLiteLLMApiKey: (apiKey: string) => void
   updateLiteLLMBaseURL: (baseURL: string) => void
+  updateLiteLLMCachingType: (cachingType: PromptCachingType) => void
 
   // Agent Chat Settings
   contextLength: number
@@ -184,13 +194,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [sendMsgKey, setSendMsgKey] = useState<SendMsgKey>('Enter')
 
   // LiteLLM Settings
-  const [liteLLMConfig, setLiteLLMConfig] = useState<LiteLLMConfig>({
-    credentials: {
-      apiKey: '',
-      baseURL: 'http://localhost:4000'
-    },
-    enabled: true
-  })
+  const [liteLLMConfig, setLiteLLMConfig] = useState<LiteLLMConfig>(DEFAULT_LITELLM_CONFIG)
 
   // Agent Chat Settings
   const [contextLength, setContextLength] = useState<number>(60)
@@ -282,17 +286,10 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     // Load LiteLLM Settings
     const liteLLMSetting = window.store.get('litellm')
-    if (liteLLMSetting) {
-      setLiteLLMConfig(liteLLMSetting)
-    } else {
-      window.store.set('litellm', {
-        credentials: {
-          apiKey: '',
-          baseURL: 'http://localhost:4000'
-        },
-        enabled: false
-      })
+    if (!liteLLMSetting) {
+      window.store.set('litellm', DEFAULT_LITELLM_CONFIG)
     }
+    setLiteLLMConfig(liteLLMSetting ?? DEFAULT_LITELLM_CONFIG)
 
     // Load Notification Settings
     const notificationSetting = window.store.get('notification')
@@ -631,7 +628,8 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         baseURL: liteLLMConfig.credentials.baseURL,
         apiKey
       },
-      enabled: apiKey && liteLLMConfig.credentials.baseURL ? true : false
+      enabled: apiKey && liteLLMConfig.credentials.baseURL ? true : false,
+      cachingType: liteLLMConfig.cachingType
     }
     setLiteLLMConfig(updatedConfig)
     window.store.set('litellm', updatedConfig)
@@ -643,7 +641,17 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         baseURL,
         apiKey: liteLLMConfig.credentials.apiKey
       },
-      enabled: baseURL && liteLLMConfig.credentials.apiKey ? true : false
+      enabled: baseURL && liteLLMConfig.credentials.apiKey ? true : false,
+      cachingType: liteLLMConfig.cachingType
+    }
+    setLiteLLMConfig(updatedConfig)
+    window.store.set('litellm', updatedConfig)
+  }
+
+  const updateLiteLLMCachingType = (cachingType: PromptCachingType) => {
+    const updatedConfig = {
+      ...liteLLMConfig,
+      cachingType
     }
     setLiteLLMConfig(updatedConfig)
     window.store.set('litellm', updatedConfig)
@@ -1247,6 +1255,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     liteLLMConfig,
     updateLiteLLMApiKey,
     updateLiteLLMBaseURL,
+    updateLiteLLMCachingType,
 
     // Agent Chat Settings
     contextLength,

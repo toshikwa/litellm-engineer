@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import toast from 'react-hot-toast'
 import { ModelSelector } from '../ModelSelector'
 import { ThinkingModeSelector } from '../ThinkingModeSelector'
+import { PromptCachingTypeSelector } from '../PromptCachingTypeSelector'
 import { useSettings } from '@renderer/contexts/SettingsContext'
 
 export type AttachedImage = {
@@ -287,6 +288,11 @@ export const TextArea: React.FC<TextAreaProps> = ({
             {currentLLM.supportsThinking && (
               <div>
                 <ThinkingModeSelector />
+              </div>
+            )}
+            {currentLLM?.modelId?.startsWith('litellm:') && (
+              <div>
+                <PromptCachingTypeSelector />
               </div>
             )}
           </div>

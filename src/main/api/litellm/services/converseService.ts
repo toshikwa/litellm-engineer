@@ -167,7 +167,8 @@ export class ConverseService {
         result.push({
           role: ConverseService.convertRole(message.role),
           content: ConverseService.convertContent(message.content),
-          tool_calls: ConverseService.convertToolCalls(message.content)
+          tool_calls: ConverseService.convertToolCalls(message.content),
+          cache_control: ConverseService.convertCacheControl(message.content)
         } as ChatCompletionMessageParam)
       }
     }
@@ -247,6 +248,15 @@ export class ConverseService {
   }
 
   /**
+   * Convert Bedrock cache control to OpenAI format
+   */
+  private static convertCacheControl(blocks: ContentBlock[]): { type: 'ephemeral' } | undefined {
+    return blocks.some((block) => block.cachePoint?.type === 'default')
+      ? { type: 'ephemeral' }
+      : undefined
+  }
+
+  /**
    * Convert OpenAI response to Bedrock format
    */
   private static convertToBedrock(response: any): ConverseCommandOutput {
@@ -302,30 +312,32 @@ export class ConverseService {
     let tools: ChatCompletionTool[] | undefined = undefined
     if (toolConfig?.tools && Array.isArray(toolConfig.tools) && toolConfig.tools.length > 0) {
       if (toolConfig.tools.length > 0) {
-        tools = toolConfig.tools.map((tool: any) => {
-          const props = tool.toolSpec?.inputSchema?.json.properties ?? {}
-          const properties = Object.fromEntries(
-            Object.keys(props).map((key) => [
-              key,
-              {
-                type: props[key].type,
-                description: props[key].description
+        tools = toolConfig.tools
+          .filter((tool) => tool.toolSpec)
+          .map((tool: any) => {
+            const props = tool.toolSpec?.inputSchema?.json.properties ?? {}
+            const properties = Object.fromEntries(
+              Object.keys(props).map((key) => [
+                key,
+                {
+                  type: props[key].type,
+                  description: props[key].description
+                }
+              ])
+            )
+            return {
+              type: 'function',
+              function: {
+                name: tool.toolSpec.name,
+                description: tool.toolSpec.description,
+                parameters: {
+                  type: 'object',
+                  properties
+                },
+                required: tool.toolSpec.inputSchema?.json?.required ?? []
               }
-            ])
-          )
-          return {
-            type: 'function',
-            function: {
-              name: tool.toolSpec.name,
-              description: tool.toolSpec.description,
-              parameters: {
-                type: 'object',
-                properties
-              },
-              required: tool.toolSpec.inputSchema?.json?.required ?? []
             }
-          }
-        })
+          })
       }
     }
     return tools
