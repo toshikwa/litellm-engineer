@@ -97,7 +97,8 @@ export const useAgentChat = (
     guardrailSettings,
     getAgentTools,
     agents,
-    enablePromptCache
+    enablePromptCache,
+    liteLLMConfig
   } = useSettings()
 
   // エージェントIDからツール設定を取得
@@ -323,17 +324,26 @@ export const useAgentChat = (
     // Context長に基づいてメッセージを制限
     const limitedMessages = limitContextLength(currentMessages, contextLength)
 
+    const AddCachePoint = modelId.startsWith('litellm:')
+      ? isPromptCacheSupported(modelId, liteLLMConfig.cachingType)
+      : enablePromptCache
+
     // キャッシュポイントを追加（前回のキャッシュポイントを引き継ぐ）
-    const messagesWithCachePoints = enablePromptCache
-      ? addCachePointsToMessages(removeTraces(limitedMessages), modelId, lastCachePoint.current)
+    const messagesWithCachePoints = AddCachePoint
+      ? addCachePointsToMessages(
+          removeTraces(limitedMessages),
+          modelId,
+          liteLLMConfig.cachingType,
+          lastCachePoint.current
+        )
       : removeTraces(limitedMessages)
     props.messages = messagesWithCachePoints
 
     // モデルがPrompt Cacheをサポートしている場合のみ、次回のキャッシュポイントを更新
     if (
-      enablePromptCache &&
-      isPromptCacheSupported(modelId) &&
-      getCacheableFields(modelId).includes('messages')
+      AddCachePoint &&
+      isPromptCacheSupported(modelId, liteLLMConfig.cachingType) &&
+      getCacheableFields(modelId, liteLLMConfig.cachingType).includes('messages')
     ) {
       // 次回の会話のために現在のキャッシュポイントを更新
       // 現在のメッセージ配列の最後のインデックスを次回の最初のキャッシュポイントとして設定
@@ -344,12 +354,12 @@ export const useAgentChat = (
     }
 
     // システムプロンプトとツール設定にもキャッシュポイントを追加
-    if (props.system && enablePromptCache) {
-      props.system = addCachePointToSystem(props.system, modelId)
+    if (props.system && AddCachePoint) {
+      props.system = addCachePointToSystem(props.system, modelId, liteLLMConfig.cachingType)
     }
 
-    if (props.toolConfig && enablePromptCache) {
-      props.toolConfig = addCachePointToTools(props.toolConfig, modelId)
+    if (props.toolConfig && AddCachePoint) {
+      props.toolConfig = addCachePointToTools(props.toolConfig, modelId, liteLLMConfig.cachingType)
     }
 
     const generator = streamChatCompletion(props, abortController.current.signal)
@@ -597,7 +607,7 @@ export const useAgentChat = (
           }
 
           // Prompt Cacheの使用状況をログ出力
-          logCacheUsage(metadata, modelId)
+          logCacheUsage(metadata, modelId, liteLLMConfig.cachingType)
 
           // 直近のアシスタントメッセージにメタデータを関連付ける
           if (lastAssistantMessageId.current) {

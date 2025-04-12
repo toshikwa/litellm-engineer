@@ -4,7 +4,7 @@ import { AgentChatConfig, KnowledgeBase, SendMsgKey, ToolState } from '../types/
 import { CustomAgent } from '../types/agent-chat'
 import { BedrockAgent } from '../types/agent'
 import { AWSCredentials } from '../main/api/bedrock/types'
-import { LiteLLMConfig } from '../types/litellm'
+import { LiteLLMConfig, PromptCachingType } from '../types/litellm'
 
 const DEFAULT_SHELL = '/bin/bash'
 const DEFAULT_INFERENCE_PARAMS: InferenceParameters = {
@@ -20,6 +20,10 @@ const DEFAULT_THINKING_MODE = {
 const DEFAULT_BEDROCK_SETTINGS = {
   enableRegionFailover: false,
   availableFailoverRegions: []
+}
+
+const DEFAULT_LITELLM_SETTINGS = {
+  promptCachingType: 'none' as PromptCachingType
 }
 
 const DEFAULT_GUARDRAIL_SETTINGS = {
@@ -109,6 +113,12 @@ type StoreScheme = {
     enableRegionFailover: boolean
     /** フェイルオーバー時に使用可能なリージョン一覧 */
     availableFailoverRegions: string[]
+  }
+
+  /** LiteLLM settings */
+  litellmSettings?: {
+    /** Prompt caching type */
+    promptCachingType: PromptCachingType
   }
 
   /** ガードレール設定 */
@@ -211,6 +221,12 @@ const init = () => {
   const bedrockSettings = electronStore.get('bedrockSettings')
   if (!bedrockSettings) {
     electronStore.set('bedrockSettings', DEFAULT_BEDROCK_SETTINGS)
+  }
+
+  // Initialize litellm settings
+  const litellmSettings = electronStore.get('litellm')
+  if (!litellmSettings) {
+    electronStore.set('litellm', DEFAULT_LITELLM_SETTINGS)
   }
 
   // Initialize guardrailSettings

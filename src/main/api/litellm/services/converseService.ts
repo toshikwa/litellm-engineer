@@ -111,7 +111,8 @@ export class ConverseService {
         top_p: inferenceParams.topP,
         tools: ConverseService.convertToolsToOpenAIFormat(props.toolConfig),
         thinking,
-        stream: true
+        stream: true,
+        stream_options: { include_usage: true }
       } as ChatCompletionCreateParamsStreaming
       const stream = await client.chat.completions.create(chatInput)
 
@@ -167,7 +168,8 @@ export class ConverseService {
         result.push({
           role: ConverseService.convertRole(message.role),
           content: ConverseService.convertContent(message.content),
-          tool_calls: ConverseService.convertToolCalls(message.content)
+          tool_calls: ConverseService.convertToolCalls(message.content),
+          cache_control: ConverseService.convertCacheControl(message.content)
         } as ChatCompletionMessageParam)
       }
     }
@@ -247,6 +249,15 @@ export class ConverseService {
   }
 
   /**
+   * Convert Bedrock cache control to OpenAI format
+   */
+  private static convertCacheControl(blocks: ContentBlock[]): { type: 'ephemeral' } | undefined {
+    return blocks.some((block) => block.cachePoint?.type === 'default')
+      ? { type: 'ephemeral' }
+      : undefined
+  }
+
+  /**
    * Convert OpenAI response to Bedrock format
    */
   private static convertToBedrock(response: any): ConverseCommandOutput {
@@ -283,11 +294,13 @@ export class ConverseService {
       output: { message },
       stopReason,
       usage: {
-        inputTokens: response.usage?.prompt_tokens,
+        cacheReadInputTokens: response.usage?.cache_read_input_tokens,
+        cacheWriteInputTokens: response.usage?.cache_creation_input_tokens,
+        inputTokens: response.usage?.prompt_tokens - response.usage?.cache_read_input_tokens,
         outputTokens: response.usage?.completion_tokens,
-        totalTokens: response.usage?.total_toketotal_tkensns
+        totalTokens: response.usage?.total_tokens + response.usage?.cache_creation_input_tokens
       },
-      metrics: { latencyMs: 0 }, // TODO
+      metrics: { latencyMs: 0 },
       $metadata: { httpStatusCode: 200 }
     }
   }
@@ -302,30 +315,32 @@ export class ConverseService {
     let tools: ChatCompletionTool[] | undefined = undefined
     if (toolConfig?.tools && Array.isArray(toolConfig.tools) && toolConfig.tools.length > 0) {
       if (toolConfig.tools.length > 0) {
-        tools = toolConfig.tools.map((tool: any) => {
-          const props = tool.toolSpec?.inputSchema?.json.properties ?? {}
-          const properties = Object.fromEntries(
-            Object.keys(props).map((key) => [
-              key,
-              {
-                type: props[key].type,
-                description: props[key].description
+        tools = toolConfig.tools
+          .filter((tool) => tool.toolSpec)
+          .map((tool: any) => {
+            const props = tool.toolSpec?.inputSchema?.json.properties ?? {}
+            const properties = Object.fromEntries(
+              Object.keys(props).map((key) => [
+                key,
+                {
+                  type: props[key].type,
+                  description: props[key].description
+                }
+              ])
+            )
+            return {
+              type: 'function',
+              function: {
+                name: tool.toolSpec.name,
+                description: tool.toolSpec.description,
+                parameters: {
+                  type: 'object',
+                  properties
+                },
+                required: tool.toolSpec.inputSchema?.json?.required ?? []
               }
-            ])
-          )
-          return {
-            type: 'function',
-            function: {
-              name: tool.toolSpec.name,
-              description: tool.toolSpec.description,
-              parameters: {
-                type: 'object',
-                properties
-              },
-              required: tool.toolSpec.inputSchema?.json?.required ?? []
             }
-          }
-        })
+          })
       }
     }
     return tools
@@ -361,6 +376,21 @@ export class ConverseService {
         let mode = undefined as 'text' | 'thinking' | 'tool' | undefined
 
         for await (const chunk of stream) {
+          // Send usage data
+          if (chunk.usage) {
+            yield {
+              metadata: {
+                usage: {
+                  cacheReadInputTokens: chunk.usage?.cache_read_input_tokens,
+                  cacheWriteInputTokens: chunk.usage?.cache_creation_input_tokens,
+                  inputTokens: chunk.usage?.prompt_tokens - chunk.usage?.cache_read_input_tokens,
+                  outputTokens: chunk.usage?.completion_tokens,
+                  totalTokens: chunk.usage?.total_tokens + chunk.usage?.cache_creation_input_tokens
+                }
+              }
+            }
+          }
+
           // Skip empty chunks
           if (!chunk.choices || chunk.choices.length === 0) continue
 
@@ -469,22 +499,6 @@ export class ConverseService {
             yield { contentBlockStop: { contentBlockIndex } }
             yield {
               messageStop: { stopReason: ConverseService.mapStopReason(choice.finish_reason) }
-            }
-
-            // TODO: Add metadata at the end of the stream
-            yield {
-              metadata: {
-                metrics: { latencyMs: 0 },
-                usage: {
-                  cacheReadInputTokenCount: 0,
-                  cacheReadInputTokens: 0,
-                  cacheWriteInputTokenCount: 0,
-                  cacheWriteInputTokens: 0,
-                  inputTokens: 0,
-                  outputTokens: 0,
-                  totalTokens: 0
-                }
-              }
             }
           }
         }
