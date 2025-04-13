@@ -179,6 +179,10 @@ function WebsiteGeneratorPageContents(props: WebsiteGeneratorPageContentsProps) 
   } = useAgentChat(llm?.modelId, systemPrompt, websiteAgentId, sessionId, options)
 
   const onSubmit = (input: string, images: AttachedImage[]) => {
+    if (llm?.modelId?.startsWith('litellm:')) {
+      alert('LiteLLM models are not supported for website generation.')
+      return
+    }
     handleSubmit(input, images)
     setUserInput('')
   }
