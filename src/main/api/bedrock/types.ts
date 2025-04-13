@@ -1,4 +1,4 @@
-import { Message } from '@aws-sdk/client-bedrock-runtime'
+import { Message, SystemContentBlock, ToolConfiguration } from '@aws-sdk/client-bedrock-runtime'
 import { ConfigStore } from '../../../preload/store'
 
 export interface GuardrailConfig {
@@ -10,8 +10,8 @@ export interface GuardrailConfig {
 export type CallConverseAPIProps = {
   modelId: string
   messages: Message[]
-  system: [{ text: string }]
-  toolConfig?: any
+  system: SystemContentBlock[]
+  toolConfig?: ToolConfiguration
   guardrailConfig?: GuardrailConfig
 }
 
