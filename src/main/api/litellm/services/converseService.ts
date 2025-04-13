@@ -4,7 +4,8 @@ import {
   Message,
   ContentBlock,
   StopReason,
-  ToolConfiguration
+  ToolConfiguration,
+  SystemContentBlock
 } from '@aws-sdk/client-bedrock-runtime'
 import { createLiteLLMClient } from '../client'
 import { createCategoryLogger } from '../../../../common/logger'
@@ -18,7 +19,8 @@ import {
   ChatCompletionRole,
   ChatCompletionToolMessageParam,
   ChatCompletionCreateParamsStreaming,
-  ChatCompletionMessageToolCall
+  ChatCompletionMessageToolCall,
+  ChatCompletionSystemMessageParam
 } from 'openai/resources'
 
 // Create category logger for LiteLLM converse service
@@ -61,7 +63,7 @@ export class ConverseService {
       // Make API call to LiteLLM
       const chatInput = {
         model: ConverseService.prepareModelId(props.modelId),
-        messages: ConverseService.prepareMessages(props.messages, props.system[0].text),
+        messages: ConverseService.prepareMessages(props.messages, props.system),
         temperature: inferenceParams.temperature,
         top_p: inferenceParams.topP,
         tools: ConverseService.convertToolsToOpenAIFormat(props.toolConfig),
@@ -106,7 +108,7 @@ export class ConverseService {
       // Make streaming API call to LiteLLM
       const chatInput = {
         model: ConverseService.prepareModelId(props.modelId),
-        messages: ConverseService.prepareMessages(props.messages, props.system[0].text),
+        messages: ConverseService.prepareMessages(props.messages, props.system),
         temperature: inferenceParams.temperature,
         top_p: inferenceParams.topP,
         tools: ConverseService.convertToolsToOpenAIFormat(props.toolConfig),
@@ -135,16 +137,18 @@ export class ConverseService {
    */
   private static prepareMessages(
     messages: Message[],
-    systemMessage: string
+    system: SystemContentBlock[]
   ): ChatCompletionMessageParam[] {
     const result: ChatCompletionMessageParam[] = []
 
     // Add system message if provided
-    if (systemMessage) {
+    if (system && system[0]?.text) {
+      const useCache = system.some((block) => block.cachePoint?.type === 'default')
       result.push({
         role: 'system',
-        content: systemMessage
-      })
+        content: system[0].text,
+        cache_control: useCache ? { type: 'ephemeral' } : undefined
+      } as ChatCompletionSystemMessageParam)
     }
 
     // Convert Bedrock messages to OpenAI format
@@ -308,7 +312,7 @@ export class ConverseService {
    * Transforms Bedrock tool configuration to OpenAI's expected format
    */
   private static convertToolsToOpenAIFormat(
-    toolConfig: ToolConfiguration
+    toolConfig?: ToolConfiguration
   ): ChatCompletionTool[] | undefined {
     let tools: ChatCompletionTool[] | undefined = undefined
     if (toolConfig?.tools && Array.isArray(toolConfig.tools) && toolConfig.tools.length > 0) {
