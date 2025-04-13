@@ -1,7 +1,7 @@
 Language: [English](./README.md) / [Japanese](./README-ja.md)
 
 > [!IMPORTANT]
-> This repository is a fork of [Bedrock Engineer](https://github.com/aws-samples/bedrock-engineer) with the purpose of adding LiteLLM support. Currently, only Amazon Bedrock is supported as a backend of LiteLLM. Mac users can download the application [here](https://github.com/toshikwa/litellm-engineer/releases/latest/download/bedrock-engineer-1.8.1-litellm.4.dmg).
+> This repository is a fork of [Bedrock Engineer](https://github.com/aws-samples/bedrock-engineer) with the purpose of adding LiteLLM support. Currently, only Amazon Bedrock is supported as a backend of LiteLLM. Mac users can download the application [here](https://github.com/toshikwa/litellm-engineer/releases/latest/download/bedrock-engineer-1.8.1-litellm.5.dmg).
 
 # 🧙 Bedrock Engineer (with LiteLLM)
 
@@ -19,7 +19,7 @@ Bedrock Engineer is a native app, you can download the app or build the source c
 
 MacOS:
 
-[<img src="https://img.shields.io/badge/Download_FOR_MAC-Latest%20Release-blue?style=for-the-badge&logo=apple" alt="Download Latest Release" height="40">](https://github.com/toshikwa/litellm-engineer/releases/latest/download/bedrock-engineer-1.8.1-litellm.4.dmg)
+[<img src="https://img.shields.io/badge/Download_FOR_MAC-Latest%20Release-blue?style=for-the-badge&logo=apple" alt="Download Latest Release" height="40">](https://github.com/toshikwa/litellm-engineer/releases/latest/download/bedrock-engineer-1.8.1-litellm.5.dmg)
 
 It is optimized for MacOS, but can also be built and used on Windows and Linux OS. If you have any problems, please report an issue.
 
