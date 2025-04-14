@@ -87,10 +87,6 @@ export default function DiagramGeneratorPage() {
   )
 
   const onSubmit = (input: string) => {
-    if (llm?.modelId?.startsWith('litellm:')) {
-      alert('LiteLLM models are not supported for diagram generation.')
-      return
-    }
     handleSubmit(input)
     setUserInput('')
     // 履歴から選択していた場合はリセット
