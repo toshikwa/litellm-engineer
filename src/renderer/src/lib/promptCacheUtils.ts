@@ -75,7 +75,7 @@ function getCacheableFieldsByCachingType(cachingType: PromptCachingType): Cachea
     case 'claude':
       return ['messages', 'system', 'tools']
     case 'nova':
-      return ['system']
+      return ['messages', 'system']
     case 'none':
     default:
       return []
