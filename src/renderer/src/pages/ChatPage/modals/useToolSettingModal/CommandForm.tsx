@@ -83,7 +83,9 @@ export const CommandForm = memo(
           </div>
 
           <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-md mb-5">
-            <h5 className="font-medium mb-2">{t('tool info.executeCommand.example title')}</h5>
+            <h5 className="font-medium mb-2 dark:text-gray-200">
+              {t('tool info.executeCommand.example title')}
+            </h5>
             <p className="text-sm text-gray-700 dark:text-gray-300">
               {t('tool info.executeCommand.example description')}
             </p>
@@ -92,7 +94,9 @@ export const CommandForm = memo(
 
         {/* シェル選択 */}
         <div className="space-y-2 p-4 border border-gray-200 dark:border-gray-700 rounded-md">
-          <h4 className="font-medium text-sm mb-3">{t('Command Shell Settings')}</h4>
+          <h4 className="font-medium text-sm mb-3 dark:text-gray-200">
+            {t('Command Shell Settings')}
+          </h4>
           <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
             {t('Command Shell')}
           </label>
@@ -114,7 +118,9 @@ export const CommandForm = memo(
 
         {/* コマンド追加フォーム */}
         <div className="flex flex-col gap-2 p-4 border border-gray-200 dark:border-gray-700 rounded-md mt-4">
-          <h4 className="font-medium text-sm mb-2">{t('Add New Command Pattern')}</h4>
+          <h4 className="font-medium text-sm mb-2 dark:text-gray-200">
+            {t('Add New Command Pattern')}
+          </h4>
           <div>
             <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
               {t('Command Pattern')}
@@ -153,7 +159,9 @@ export const CommandForm = memo(
 
         {/* 登録済みコマンドリスト */}
         <div className="space-y-3 mt-6">
-          <h4 className="font-medium text-sm">{t('Allowed Command Patterns')}</h4>
+          <h4 className="font-medium text-sm dark:text-gray-200">
+            {t('Allowed Command Patterns')}
+          </h4>
           <div className=" grid grid-cols-2 gap-2">
             {allowedCommands.length === 0 ? (
               <p className="text-sm text-gray-500 dark:text-gray-400 italic">

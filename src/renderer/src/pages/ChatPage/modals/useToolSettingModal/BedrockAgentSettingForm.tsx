@@ -73,7 +73,9 @@ export const BedrockAgentSettingForm = memo(
           </p>
 
           <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-md mb-5">
-            <h5 className="font-medium mb-2">{t('tool info.invokeBedrockAgent.about title')}</h5>
+            <h5 className="font-medium mb-2 dark:text-gray-200">
+              {t('tool info.invokeBedrockAgent.about title')}
+            </h5>
             <p className="text-sm text-gray-700 dark:text-gray-300">
               {t('tool info.invokeBedrockAgent.about description')}
             </p>
@@ -82,7 +84,9 @@ export const BedrockAgentSettingForm = memo(
 
         {/* Agent 追加フォーム */}
         <div className="flex flex-col gap-2 p-4 border border-gray-200 dark:border-gray-700 rounded-md">
-          <h4 className="font-medium text-sm mb-2">{t('Add New Bedrock Agent')}</h4>
+          <h4 className="font-medium text-sm mb-2 dark:text-gray-200">
+            {t('Add New Bedrock Agent')}
+          </h4>
           <div className="flex gap-2">
             <div className="flex-grow">
               <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
@@ -132,7 +136,7 @@ export const BedrockAgentSettingForm = memo(
 
         {/* 登録済み Agent リスト */}
         <div className="space-y-3 mt-6">
-          <h4 className="font-medium text-sm">{t('Registered Agents')}</h4>
+          <h4 className="font-medium text-sm dark:text-gray-200">{t('Registered Agents')}</h4>
           {bedrockAgents.length === 0 ? (
             <p className="text-sm text-gray-500 dark:text-gray-400 italic">
               {t('No agents registered yet')}

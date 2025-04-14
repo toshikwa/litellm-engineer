@@ -67,7 +67,9 @@ export const KnowledgeBaseSettingForm = ({
         </p>
 
         <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-md mb-5">
-          <h5 className="font-medium mb-2">{t('tool info.retrieve.about title')}</h5>
+          <h5 className="font-medium mb-2 dark:text-gray-200">
+            {t('tool info.retrieve.about title')}
+          </h5>
           <p className="text-sm text-gray-700 dark:text-gray-300">
             {t('tool info.retrieve.about description')}
           </p>
@@ -76,7 +78,9 @@ export const KnowledgeBaseSettingForm = ({
 
       {/* KnowledgeBase 追加フォーム */}
       <div className="flex flex-col gap-2 p-4 border border-gray-200 dark:border-gray-700 rounded-md">
-        <h4 className="font-medium text-sm mb-2">{t('Add New Knowledge Base')}</h4>
+        <h4 className="font-medium text-sm mb-2 dark:text-gray-200">
+          {t('Add New Knowledge Base')}
+        </h4>
         <div className="flex-grow">
           <label className="block text-xs text-gray-600 dark:text-gray-400 mb-1">
             {t('Knowledge Base ID')}
@@ -113,7 +117,9 @@ export const KnowledgeBaseSettingForm = ({
 
       {/* 登録済み KnowledgeBase リスト */}
       <div className="space-y-3 mt-6">
-        <h4 className="font-medium text-sm">{t('Registered Knowledge Bases')}</h4>
+        <h4 className="font-medium text-sm dark:text-gray-200">
+          {t('Registered Knowledge Bases')}
+        </h4>
         {knowledgeBases.length === 0 ? (
           <p className="text-sm text-gray-500 dark:text-gray-400 italic">
             {t('No knowledge bases registered yet')}

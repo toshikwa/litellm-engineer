@@ -3,7 +3,7 @@ import { initReactI18next } from 'react-i18next'
 import en from './locales/en'
 import ja from './locales/ja'
 
-const defaultLaunguage = navigator.language ?? window.store.get('language')
+const defaultLaunguage = window.store.get('language') ?? navigator.language
 
 const resources = {
   en: {

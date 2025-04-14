@@ -139,7 +139,7 @@ const ToolItem: React.FC<ToolItemProps> = ({
                 </span>
               )}
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1">
+            <p className="text-xs text-gray-500 dark:text-gray-300 mt-0.5 line-clamp-1">
               {t(`tool descriptions.${toolName}`, isMcp ? 'MCP Tool' : '')}
             </p>
           </div>
@@ -301,7 +301,7 @@ const ToolSettingModal = memo(({ isOpen, onClose }: ToolSettingModalProps) => {
         ) : (
           <div>
             Agent Tools
-            <div className="text-sm font-normal text-gray-500 mt-1">
+            <div className="text-sm font-normal text-gray-500 dark:text-gray-300 mt-1">
               {t('Select an agent first to edit tool settings')}
             </div>
           </div>
@@ -321,7 +321,7 @@ const ToolSettingModal = memo(({ isOpen, onClose }: ToolSettingModalProps) => {
                     <div className="text-sm text-gray-700 dark:text-gray-300">
                       {t(`Tool Categories.${category.name}`)}
                     </div>
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    <div className="text-xs text-gray-500 dark:text-gray-300 mt-1">
                       {t(`Tool Categories.${category.name} Description`)}
                     </div>
                   </div>
@@ -355,8 +355,8 @@ const ToolSettingModal = memo(({ isOpen, onClose }: ToolSettingModalProps) => {
           <div className="lg:w-2/3 flex-1 overflow-y-auto h-full max-h-[700px]">
             {selectedTool ? (
               <div className="p-4">
-                <div className="sticky top-0 pt-1 pb-3 bg-white dark:bg-gray-900 z-20 mb-4">
-                  <h3 className="text-lg font-medium border-b border-gray-200 dark:border-gray-700 pb-3">
+                <div className="sticky top-0 pt-1 pb-3 bg-white dark:bg-gray-700 z-20 mb-4">
+                  <h3 className="text-lg font-medium border-b border-gray-200 dark:border-gray-600 dark:text-gray-100 pb-3">
                     {selectedTool}
                   </h3>
                 </div>
@@ -433,7 +433,7 @@ const ToolSettingModal = memo(({ isOpen, onClose }: ToolSettingModalProps) => {
                     </p>
 
                     <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-md mt-4">
-                      <h5 className="font-medium mb-2">{t('Tip')}</h5>
+                      <h5 className="font-medium mb-2 dark:text-gray-200">{t('Tip')}</h5>
                       <p className="text-sm text-gray-700 dark:text-gray-300">
                         {t(
                           `tool usage.${selectedTool}.tip`,
@@ -445,7 +445,7 @@ const ToolSettingModal = memo(({ isOpen, onClose }: ToolSettingModalProps) => {
                 )}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-[700px] text-center text-gray-500 dark:text-gray-400 p-4">
+              <div className="flex flex-col items-center justify-center h-[700px] text-center text-gray-500 dark:text-gray-300 p-4">
                 <div className="text-5xl mb-4">🛠️</div>
                 <p className="text-base">{t('Select a tool from the list')}</p>
                 <p className="text-sm mt-2">
