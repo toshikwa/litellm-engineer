@@ -1,5 +1,10 @@
 import { PromptCachingType } from '@/types/litellm'
-import type { Message, ContentBlock, ToolConfiguration } from '@aws-sdk/client-bedrock-runtime'
+import type {
+  Message,
+  ContentBlock,
+  ToolConfiguration,
+  ConverseStreamMetadataEvent
+} from '@aws-sdk/client-bedrock-runtime'
 
 /**
  * キャッシュ可能なフィールドの型定義
@@ -15,9 +20,9 @@ const MODEL_CACHE_SUPPORT: Record<string, CacheableField[]> = {
   'anthropic.claude-3-7-sonnet-20250219-v1:0': ['messages', 'system', 'tools'],
   'anthropic.claude-3-5-haiku-20241022-v1:0': ['messages', 'system', 'tools'],
   'anthropic.claude-3-5-sonnet-20241022-v2:0': ['messages', 'system', 'tools'],
-  'amazon.nova-micro-v1:0': ['system'],
-  'amazon.nova-lite-v1:0': ['system'],
-  'amazon.nova-pro-v1:0': ['system']
+  'amazon.nova-micro-v1:0': ['messages', 'system'],
+  'amazon.nova-lite-v1:0': ['messages', 'system'],
+  'amazon.nova-pro-v1:0': ['messages', 'system']
 
   // 将来的にサポートされるモデルはここに追加
 }
@@ -102,6 +107,14 @@ export function addCachePointsToMessages(
   if (
     !isPromptCacheSupported(modelId, cachingType) ||
     !getCacheableFields(modelId, cachingType).includes('messages')
+  ) {
+    return messages
+  }
+
+  // Assistant メッセージに toolUse が含まれる場合、Amazon Nova モデルで cachePoint を追加するとエラーが発生する
+  if (
+    !getCacheableFields(modelId, cachingType).includes('tools') &&
+    messages.some((msg) => Array.isArray(msg.content) && msg.content.some((b) => b.toolUse))
   ) {
     return messages
   }
@@ -219,19 +232,20 @@ export function addCachePointToTools(
  * @param modelId モデルID
  */
 export function logCacheUsage(
-  metadata: any,
+  metadata: ConverseStreamMetadataEvent | Record<string, any>,
   modelId: string,
   cachingType: PromptCachingType
 ): void {
   // メタデータからキャッシュ関連の情報を抽出
-  const inputTokens = metadata.usage?.inputTokens
-  const outputTokens = metadata.usage?.outputTokens
-  const cacheReadInputTokens = metadata.usage?.cacheReadInputTokens
-  const cacheWriteInputTokens = metadata.usage?.cacheWriteInputTokens
+  const inputTokens = metadata.usage?.inputTokens ?? 0
+  const outputTokens = metadata.usage?.outputTokens ?? 0
+  const cacheReadInputTokens = metadata.usage?.cacheReadInputTokens ?? 0
+  const cacheWriteInputTokens = metadata.usage?.cacheWriteInputTokens ?? 0
 
   // キャッシュヒット率を計算
+  const totalInputTokens = cacheReadInputTokens + cacheWriteInputTokens + inputTokens
   const cacheHitRatio =
-    cacheReadInputTokens && inputTokens ? (cacheReadInputTokens / inputTokens).toFixed(2) : '0.00'
+    totalInputTokens > 0 ? (cacheReadInputTokens / totalInputTokens).toFixed(2) : '0.00'
 
   // キャッシュ使用状況をログ出力
   console.debug('Converse API cache usage', {

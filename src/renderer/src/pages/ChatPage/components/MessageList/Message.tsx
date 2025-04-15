@@ -151,14 +151,14 @@ export const ChatMessage = memo(function ChatMessage({
               onClick={handleCopyMessage}
             >
               <FiCopy className="text-blue-500" />
-              <span>{t('Copy to clipboard')}</span>
+              <span className="dark:text-gray-300">{t('Copy to clipboard')}</span>
             </button>
             <button
               className="flex items-center gap-2 px-4 py-2 w-full text-left text-sm hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
               onClick={handleDeleteMessage}
             >
               <FiTrash2 className="text-red-500" />
-              <span>{t('Delete message')}</span>
+              <span className="dark:text-gray-300">{t('Delete message')}</span>
             </button>
           </div>
         )}
